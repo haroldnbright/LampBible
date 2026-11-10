@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C2340">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Lamp Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --paper:#EEF0EC; --sheet:#F8F9F6; --ink:#1C2340; --muted:#646A7D; --line:#D5D9D2;
+  --rubric:#A11D33; --gold:#A8873A;
+  --hl-gold:rgba(214,178,74,.38); --hl-sage:rgba(120,160,120,.32); --hl-sky:rgba(110,150,210,.30);
+  --serif:"EB Garamond", Garamond, "Times New Roman", serif;
+  --sans:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs:1.25rem;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#12172A; --sheet:#181E34; --ink:#DADCE6; --muted:#9097AD; --line:#2B3350;
+    --rubric:#E07385; --gold:#D1B36A;
+    --hl-gold:rgba(209,179,106,.28); --hl-sage:rgba(130,180,130,.24); --hl-sky:rgba(120,160,230,.26);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12172A; --sheet:#181E34; --ink:#DADCE6; --muted:#9097AD; --line:#2B3350;
+  --rubric:#E07385; --gold:#D1B36A;
+  --hl-gold:rgba(209,179,106,.28); --hl-sage:rgba(130,180,130,.24); --hl-sky:rgba(120,160,230,.26);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--rubric);outline-offset:2px;border-radius:4px}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.top-in{max-width:44rem;margin:0 auto;display:flex;align-items:center;gap:.5rem;padding:.6rem 1rem}
+.ref-btn{font-family:var(--serif);font-size:1.3rem;font-weight:500;padding:.25rem .5rem;margin-left:-.5rem;border-radius:6px;display:flex;align-items:center;gap:.4rem}
+.ref-btn:hover{background:var(--sheet)}
+.ref-btn svg{width:.8rem;height:.8rem;opacity:.6}
+.spacer{flex:1}
+.tool{font-size:.85rem;color:var(--muted);padding:.4rem .55rem;border-radius:6px}
+.tool:hover{color:var(--ink);background:var(--sheet)}
+
+main{max-width:44rem;margin:0 auto;padding:0 1rem 7rem}
+.view{display:none}.view.on{display:block}
+
+/* reading */
+.chapter{padding:2.5rem 0 1rem}
+.book-title{font-family:var(--serif);font-size:1rem;letter-spacing:.02em;color:var(--muted);font-style:italic;margin:0 0 1.5rem}
+.text{font-family:var(--serif);font-size:var(--fs);line-height:1.72;hanging-punctuation:first;max-width:36em}
+.drop{float:left;font-family:var(--serif);font-weight:500;color:var(--rubric);font-size:calc(var(--fs)*4.6);line-height:.82;margin:.08em .12em 0 -.04em}
+.v{cursor:pointer;border-radius:3px;transition:background-color .15s;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 .05em}
+.v sup{font-family:var(--sans);font-size:.55em;font-weight:600;color:var(--rubric);margin-right:.2em;vertical-align:.55em;line-height:0}
+.v.first sup{display:none}
+.v.sel{text-decoration:underline;text-decoration-color:var(--rubric);text-decoration-thickness:1px;text-underline-offset:.22em}
+.v.h-gold{background:var(--hl-gold)}.v.h-sage{background:var(--hl-sage)}.v.h-sky{background:var(--hl-sky)}
+.v.bm sup::after{content:"";display:inline-block;width:.45em;height:.45em;margin-left:.15em;background:var(--gold);border-radius:50%;vertical-align:.1em}
+.pager{display:flex;justify-content:space-between;gap:1rem;margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--line)}
+.pager button{font-size:.9rem;color:var(--muted);padding:.5rem 0}
+.pager button:hover:not(:disabled){color:var(--ink)}
+.pager button:disabled{opacity:.35;cursor:default}
+
+/* verse action bar */
+.actions{position:fixed;left:50%;bottom:calc(4.4rem + env(safe-area-inset-bottom,0px));transform:translate(-50%,1rem);opacity:0;pointer-events:none;transition:.18s ease;z-index:8;background:var(--ink);color:var(--paper);border-radius:14px;padding:.5rem;display:flex;align-items:center;gap:.25rem;box-shadow:0 8px 30px rgba(10,14,30,.28);max-width:calc(100% - 1.5rem)}
+.actions.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.actions .lbl{font-family:var(--serif);font-size:1rem;padding:0 .6rem 0 .4rem;white-space:nowrap}
+.sw{width:1.7rem;height:1.7rem;border-radius:50%;border:2px solid transparent;margin:0 .1rem}
+.sw.gold{background:#D6B24A}.sw.sage{background:#8DB38D}.sw.sky{background:#86A8DC}
+.sw.active{border-color:var(--paper)}
+.act{font-size:.85rem;padding:.45rem .6rem;border-radius:8px;white-space:nowrap}
+.act:hover{background:rgba(255,255,255,.12)}
+.sep{width:1px;align-self:stretch;background:rgba(255,255,255,.2);margin:0 .2rem}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--sheet);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-in{max-width:44rem;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.nav button{padding:.7rem 0 .75rem;font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.nav button svg{width:1.3rem;height:1.3rem}
+.nav button[aria-current="page"]{color:var(--rubric)}
+
+/* sheet (book picker) */
+.scrim{position:fixed;inset:0;background:rgba(10,14,30,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.picker{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--sheet);border-radius:18px 18px 0 0;max-height:85%;display:flex;flex-direction:column;transform:translateY(102%);transition:transform .25s ease;padding-bottom:env(safe-area-inset-bottom,0px);max-width:44rem;margin:0 auto}
+.picker.on{transform:none}
+.picker-head{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem .5rem}
+.picker-head h2{font-family:var(--serif);font-weight:500;font-size:1.4rem;margin:0;flex:1}
+.seg{display:flex;background:var(--paper);border-radius:8px;padding:3px}
+.seg button{font-size:.8rem;padding:.35rem .7rem;border-radius:6px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.picker-body{overflow:auto;padding:.5rem 1.25rem 1.5rem}
+.books{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.1rem .75rem}
+.books button{text-align:left;font-family:var(--serif);font-size:1.08rem;padding:.4rem .2rem;border-radius:6px}
+.books button:hover{color:var(--rubric)}
+.books button.cur{color:var(--rubric);font-weight:600}
+.chaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(3rem,1fr));gap:.4rem}
+.chaps button{aspect-ratio:1;font-family:var(--serif);font-size:1.1rem;border:1px solid var(--line);border-radius:8px}
+.chaps button:hover,.chaps button.cur{border-color:var(--rubric);color:var(--rubric)}
+.back{font-size:.85rem;color:var(--muted)}
+
+/* search */
+.page{padding-top:2rem}
+.page h1{font-family:var(--serif);font-weight:500;font-size:2.2rem;margin:0 0 1.25rem;line-height:1.1}
+.search-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.75rem}
+.search-row input{flex:1;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:.75rem .9rem;min-width:0}
+.meta{font-size:.85rem;color:var(--muted);margin:.5rem 0 1rem}
+.results{list-style:none;margin:0;padding:0}
+.results li{border-top:1px solid var(--line)}
+.results button{display:block;width:100%;text-align:left;padding:.9rem 0}
+.results .r{font-size:.8rem;font-weight:600;color:var(--rubric);margin-bottom:.2rem}
+.results .t{font-family:var(--serif);font-size:1.08rem;line-height:1.55}
+.results mark{background:var(--hl-gold);color:inherit;border-radius:2px}
+.empty{font-family:var(--serif);font-size:1.1rem;color:var(--muted);line-height:1.6;max-width:28rem}
+.chip-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem}
+.chip{font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:.35rem .8rem}
+.chip:hover{border-color:var(--rubric);color:var(--rubric)}
+
+/* today */
+.votd{margin:1rem 0 2.5rem}
+.votd blockquote{margin:0;font-family:var(--serif);font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.35;text-wrap:pretty}
+.votd blockquote::before{content:"";display:block;width:2.5rem;height:3px;background:var(--rubric);margin-bottom:1.25rem}
+.votd cite{display:block;font-style:normal;margin-top:1rem;font-size:.95rem;color:var(--muted)}
+.votd .row{display:flex;gap:.5rem;margin-top:1.25rem}
+.btn{font-size:.9rem;font-weight:500;padding:.6rem 1rem;border-radius:9px;border:1px solid var(--line);background:var(--sheet)}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.plan h2,.saved h2{font-family:var(--serif);font-weight:500;font-size:1.4rem;margin:0 0 .4rem}
+.plan p{color:var(--muted);font-size:.92rem;margin:0 0 1rem;line-height:1.5}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+.bar span{display:block;height:100%;background:var(--gold);transition:width .3s}
+.plan-today{display:flex;justify-content:space-between;align-items:center;gap:1rem;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-top:1rem}
+.plan-today .p{font-family:var(--serif);font-size:1.15rem}
+.plan-today .s{font-size:.8rem;color:var(--muted)}
+
+/* saved */
+.tabs{display:flex;gap:1.25rem;border-bottom:1px solid var(--line);margin-bottom:.5rem}
+.tabs button{padding:.6rem 0;font-size:.92rem;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--rubric)}
+.swatch{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.4rem;vertical-align:.05em}
+
+/* settings popover */
+.settings{position:absolute;right:1rem;top:calc(100% + .4rem);background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:1rem;width:15rem;box-shadow:0 10px 30px rgba(10,14,30,.15);display:none}
+.settings.on{display:block}
+.settings .lab{font-size:.8rem;color:var(--muted);margin-bottom:.4rem}
+.settings .grp{margin-bottom:1rem}.settings .grp:last-child{margin-bottom:0}
+.fs-row{display:flex;align-items:center;gap:.5rem}
+.fs-row button{border:1px solid var(--line);border-radius:8px;width:2.4rem;height:2.2rem;font-family:var(--serif)}
+.fs-row span{flex:1;text-align:center;font-size:.85rem;color:var(--muted)}
+.top-rel{position:relative}
+
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 4.2rem);transform:translate(-50%,-.5rem);background:var(--ink);color:var(--paper);font-size:.85rem;padding:.55rem 1rem;border-radius:999px;opacity:0;transition:.2s;pointer-events:none;z-index:30}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:520px){.actions .lbl{display:none}}
+/* v2 additions */
+.ver-btn{font-size:.8rem;font-weight:600;letter-spacing:.02em;border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;color:var(--ink)}
+.ver-btn:hover{border-color:var(--rubric);color:var(--rubric)}
+.vlist{list-style:none;margin:0;padding:0}
+.vlist li+li{border-top:1px solid var(--line)}
+.vlist button{display:grid;grid-template-columns:3.4rem 1fr auto;align-items:baseline;gap:.75rem;width:100%;text-align:left;padding:.85rem .2rem}
+.vlist .ab{font-weight:600;font-size:.9rem;color:var(--rubric)}
+.vlist .nm{font-family:var(--serif);font-size:1.12rem}
+.vlist .lic{display:block;font-size:.78rem;color:var(--muted);margin-top:.15rem;font-family:var(--sans)}
+.vlist .st{font-size:.75rem;color:var(--muted);white-space:nowrap}
+.vlist button[aria-current="true"] .nm{font-weight:600}
+.vlist button[aria-current="true"] .st{color:var(--rubric)}
+.group-h{font-size:.8rem;color:var(--muted);margin:1.1rem 0 .2rem}
+.group-h:first-child{margin-top:0}
+.keybox{background:var(--paper);border-radius:12px;padding:1rem;margin-top:1rem}
+.keybox p{font-size:.85rem;color:var(--muted);margin:0 0 .6rem;line-height:1.5}
+.keybox a{color:var(--rubric)}
+.keyrow{display:flex;gap:.5rem}
+.keyrow input{flex:1;min-width:0;font:inherit;font-size:.9rem;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem}
+.status{text-align:center;padding:5rem 1rem;font-family:var(--serif);font-size:1.15rem;color:var(--muted)}
+.status .btn{margin-top:1rem;font-family:var(--sans)}
+.spin{display:inline-block;width:1.1rem;height:1.1rem;border:2px solid var(--line);border-top-color:var(--rubric);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-.2rem;margin-right:.5rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+.cmp{list-style:none;margin:0;padding:0}
+.cmp li{padding:.9rem 0;border-top:1px solid var(--line)}
+.cmp li:first-child{border-top:0}
+.cmp .ab{font-size:.78rem;font-weight:600;color:var(--rubric);margin-bottom:.25rem}
+.cmp .t{font-family:var(--serif);font-size:1.12rem;line-height:1.55}
+.cmp .t.na{color:var(--muted);font-style:italic;font-size:1rem}
+.copyright{font-size:.78rem;color:var(--muted);margin-top:1.5rem;line-height:1.5}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in top-rel">
+    <button class="ref-btn" id="refBtn" aria-haspopup="dialog"><span id="refLabel">Loading</span>
+      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 4l4 4 4-4"/></svg></button>
+    <span class="spacer"></span>
+    <button class="ver-btn" id="verBtn" aria-haspopup="dialog" title="Change translation">...</button>
+    <button class="tool" id="settingsBtn" aria-expanded="false" aria-controls="settings">Aa</button>
+    <div class="settings" id="settings" role="dialog" aria-label="Reading settings">
+      <div class="grp"><div class="lab">Text size</div>
+        <div class="fs-row"><button id="fsDown" aria-label="Smaller text">A</button><span id="fsVal">100%</span><button id="fsUp" aria-label="Larger text" style="font-size:1.2rem">A</button></div></div>
+      <div class="grp"><div class="lab">Theme</div>
+        <div class="seg" id="themeSeg"><button data-t="system">Auto</button><button data-t="light">Light</button><button data-t="dark">Dark</button></div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="view on" id="v-read" aria-label="Reader">
+    <article class="chapter">
+      <p class="book-title" id="bookTitle"></p>
+      <div class="text" id="text"></div>
+      <div class="pager" id="pager"><button id="prevBtn"></button><button id="nextBtn"></button></div>
+      <p class="copyright" id="copyright"></p>
+    </article>
+  </section>
+
+  <section class="view page" id="v-search" aria-label="Search">
+    <h1>Search</h1>
+    <div class="search-row">
+      <input id="q" type="search" placeholder="Words or a reference, like John 3:16" autocomplete="off" enterkeyhint="search">
+    </div>
+    <div class="seg" id="scopeSeg" style="display:inline-flex"><button data-s="all" aria-pressed="true">Whole Bible</button><button data-s="ot" aria-pressed="false">Old Testament</button><button data-s="nt" aria-pressed="false">New Testament</button></div>
+    <p class="meta" id="searchMeta"></p>
+    <ul class="results" id="results"></ul>
+    <div id="searchEmpty">
+      <p class="empty" id="searchIntro"></p>
+      <div class="chip-row" id="chips"></div>
+    </div>
+  </section>
+
+  <section class="view page" id="v-saved" aria-label="Saved">
+    <h1>Saved</h1>
+    <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="hl">Highlights</button><button role="tab" aria-selected="false" data-tab="bm">Bookmarks</button></div>
+    <ul class="results" id="savedList"></ul>
+  </section>
+
+  <section class="view page" id="v-today" aria-label="Today">
+    <h1 id="todayDate">Today</h1>
+    <div class="votd">
+      <blockquote id="votdText"></blockquote>
+      <cite id="votdRef"></cite>
+      <div class="row"><button class="btn primary" id="votdOpen">Read the chapter</button><button class="btn" id="votdCopy">Copy</button></div>
+    </div>
+    <div class="plan">
+      <h2>Through the Gospels in 89 days</h2>
+      <p>One chapter a day, Matthew through John, in whichever translation you're reading. Your place is kept on this device.</p>
+      <div class="bar"><span id="planBar" style="width:0"></span></div>
+      <div class="meta" id="planMeta" style="margin:0"></div>
+      <div class="plan-today">
+        <div><div class="p" id="planRef"></div><div class="s" id="planDay"></div></div>
+        <div style="display:flex;gap:.5rem"><button class="btn" id="planRead">Read</button><button class="btn primary" id="planDone">Mark done</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="actions" id="actions" role="toolbar" aria-label="Verse actions">
+  <span class="lbl" id="actLabel"></span>
+  <button class="sw gold" data-c="gold" aria-label="Highlight gold"></button>
+  <button class="sw sage" data-c="sage" aria-label="Highlight green"></button>
+  <button class="sw sky" data-c="sky" aria-label="Highlight blue"></button>
+  <span class="sep"></span>
+  <button class="act" id="actCmp">Compare</button>
+  <button class="act" id="actBm">Bookmark</button>
+  <button class="act" id="actCopy">Copy</button>
+  <button class="act" id="actClose" aria-label="Close">Done</button>
+</div>
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-in">
+    <button data-v="read" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5v-13zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5v-13z"/></svg>Read</button>
+    <button data-v="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Search</button>
+    <button data-v="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg>Saved</button>
+    <button data-v="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Today</button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+  <div class="picker-head">
+    <h2 id="pickerTitle">Books</h2>
+    <div class="seg" id="testSeg"><button data-t="ot" aria-pressed="true">Old</button><button data-t="nt" aria-pressed="false">New</button></div>
+    <button class="tool" id="sheetClose">Close</button>
+  </div>
+  <div class="picker-body" id="pickerBody"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- canon: book order, names, chapter counts (navigation only, no text) ---------- */
+const CANON = [["GEN","Genesis",50],["EXO","Exodus",40],["LEV","Leviticus",27],["NUM","Numbers",36],["DEU","Deuteronomy",34],["JOS","Joshua",24],["JDG","Judges",21],["RUT","Ruth",4],["1SA","1 Samuel",31],["2SA","2 Samuel",24],["1KI","1 Kings",22],["2KI","2 Kings",25],["1CH","1 Chronicles",29],["2CH","2 Chronicles",36],["EZR","Ezra",10],["NEH","Nehemiah",13],["EST","Esther",10],["JOB","Job",42],["PSA","Psalms",150],["PRO","Proverbs",31],["ECC","Ecclesiastes",12],["SNG","Song of Solomon",8],["ISA","Isaiah",66],["JER","Jeremiah",52],["LAM","Lamentations",5],["EZK","Ezekiel",48],["DAN","Daniel",12],["HOS","Hosea",14],["JOL","Joel",3],["AMO","Amos",9],["OBA","Obadiah",1],["JON","Jonah",4],["MIC","Micah",7],["NAM","Nahum",3],["HAB","Habakkuk",3],["ZEP","Zephaniah",3],["HAG","Haggai",2],["ZEC","Zechariah",14],["MAL","Malachi",4],["MAT","Matthew",28],["MRK","Mark",16],["LUK","Luke",24],["JHN","John",21],["ACT","Acts",28],["ROM","Romans",16],["1CO","1 Corinthians",16],["2CO","2 Corinthians",13],["GAL","Galatians",6],["EPH","Ephesians",6],["PHP","Philippians",4],["COL","Colossians",4],["1TH","1 Thessalonians",5],["2TH","2 Thessalonians",3],["1TI","1 Timothy",6],["2TI","2 Timothy",4],["TIT","Titus",3],["PHM","Philemon",1],["HEB","Hebrews",13],["JAS","James",5],["1PE","1 Peter",5],["2PE","2 Peter",3],["1JN","1 John",5],["2JN","2 John",1],["3JN","3 John",1],["JUD","Jude",1],["REV","Revelation",22]]; // [usfm, name, chapterCount]
+const NT_START = 39;
+const USFM = CANON.map(b => b[0]);
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+/* ---------- storage ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('lamp:'+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('lamp:'+k, JSON.stringify(v)); }catch(e){} }
+};
+let state = Object.assign({ver:null, b:0, c:0}, store.get('pos', {}));
+let hl = store.get('hl2', {});        // "JHN.3.16" -> color
+let bm = store.get('bm2', {});        // "JHN.3.16" -> timestamp
+let prefs = Object.assign({fs:100, theme:'system'}, store.get('prefs', {}));
+let plan = store.get('plan', {done:0});
+let apiKey = store.get('apikey', '');
+let sel = new Set();
+let current = null;                    // {verses, copyright} for the chapter on screen
+
+const key = (b,c,v) => USFM[b]+'.'+(c+1)+'.'+(v+1);
+const unkey = k => { const [u,c,v] = k.split('.'); return [USFM.indexOf(u), +c-1, +v-1]; };
+const refStr = (b,c,v) => CANON[b][1]+' '+(c+1)+(v!=null ? ':'+(v+1) : '');
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); }
+
+/* ---------- versions manifest ---------- */
+const MANIFEST_URL = (document.querySelector('meta[name="lamp-manifest"]')||{}).content || 'data/versions.json';
+const manifestBase = new URL(location.href); // source urls in versions.json are relative to the app
+let manifest = null;
+const byId = id => manifest.versions.find(v => v.id === id);
+const ver = () => byId(state.ver);
+
+/* ---------- data sources ----------
+   Each source type implements: ready(v), chapter(v,b,c) -> {verses:[..], copyright}, search(v,q,range) -> {hits:[[b,c,v,text]], total}
+   Add a new type (your own API, per-book files, IndexedDB) by adding an entry here. */
+const fileCache = {};   // id -> Promise<version document>
+const sources = {
+  file: {
+    ready(){ return true; },
+    load(v){
+      if(!fileCache[v.id]){
+        const url = new URL(v.source.url, manifestBase).href;
+        fileCache[v.id] = fetch(url).then(r => { if(!r.ok) throw new Error('Could not download '+v.abbreviation+' ('+r.status+').'); return r.json(); })
+          .then(doc => { markDownloaded(v.id); return doc; })
+          .catch(e => { delete fileCache[v.id]; throw e; });
+      }
+      return fileCache[v.id];
+    },
+    async chapter(v,b,c){
+      const doc = await this.load(v);
+      const book = doc.books.find(x => x.id === USFM[b]);
+      return {verses: (book && book.chapters[c]) || [], copyright: doc.name+' ('+doc.abbreviation+'). '+doc.license+'.'};
+    },
+    async search(v,q,[s,e]){
+      const doc = await this.load(v); const needle=q.toLowerCase(); const hits=[]; let total=0;
+      for(const book of doc.books){ const b=USFM.indexOf(book.id); if(b<s||b>=e) continue;
+        book.chapters.forEach((vs,c)=>vs.forEach((t,i)=>{ if(t && t.toLowerCase().includes(needle)){ total++; if(hits.length<150) hits.push([b,c,i,t]); } }));
+      }
+      return {hits,total};
+    }
+  },
+  apibible: {
+    base: 'https://rest.api.bible/v1',
+    chapterCache: {},
+    ready(){ return !!apiKey; },
+    async req(path){
+      if(!apiKey) throw new Error('Add your API.Bible key in the translations list to read this version.');
+      let r;
+      try{ r = await fetch(this.base+path, {headers:{'api-key':apiKey}}); }
+      catch(e){ throw new Error('Could not reach API.Bible. Check your connection, or switch to a translation stored on this device.'); }
+      if(r.status===401||r.status===403) throw new Error('API.Bible rejected the key, or this key does not include this translation.');
+      if(!r.ok) throw new Error('API.Bible returned an error ('+r.status+').');
+      return r.json();
+    },
+    async bibleId(v){
+      if(v.source.bibleId) return v.source.bibleId;
+      const ids = store.get('bibleIds', {});
+      if(ids[v.id]) return ids[v.id];
+      const res = await this.req('/bibles?language=eng&abbreviation='+encodeURIComponent(v.source.abbreviation));
+      const want = v.source.abbreviation.toUpperCase();
+      const hit = (res.data||[]).find(x => (x.abbreviationLocal||'').toUpperCase()===want || (x.abbreviation||'').toUpperCase()===want)
+               || (res.data||[]).find(x => (x.abbreviation||'').toUpperCase().startsWith(want));
+      if(!hit) throw new Error(v.name+' is not available with this API key. Request access for it in your API.Bible account.');
+      ids[v.id] = hit.id; store.set('bibleIds', ids);
+      return hit.id;
+    },
+    async chapter(v,b,c){
+      const ck = v.id+'|'+b+'|'+c;
+      if(this.chapterCache[ck]) return this.chapterCache[ck];
+      const id = await this.bibleId(v);
+      const res = await this.req('/bibles/'+id+'/chapters/'+USFM[b]+'.'+(c+1)+'?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false');
+      const verses = [];
+      const parts = (res.data.content||'').split(/\[(\d+)(?:-\d+)?\]/);
+      for(let i=1;i<parts.length;i+=2){ const n=+parts[i]; verses[n-1] = parts[i+1].replace(/\s+/g,' ').trim(); }
+      for(let i=0;i<verses.length;i++) if(verses[i]==null) verses[i]='';
+      return (this.chapterCache[ck] = {verses, copyright: res.data.copyright || v.license});
+    },
+    async search(v,q,[s,e]){
+      const id = await this.bibleId(v);
+      const res = await this.req('/bibles/'+id+'/search?limit=100&query='+encodeURIComponent(q));
+      const hits = ((res.data&&res.data.verses)||[]).map(x => { const [b,c,i]=unkey(x.id); return [b,c,i,x.text]; }).filter(h => h[0]>=s && h[0]<e);
+      return {hits, total: (res.data&&res.data.total)||hits.length};
+    }
+  }
+};
+const src = v => sources[v.source.type];
+function markDownloaded(id){ const d=store.get('downloaded',[]); if(!d.includes(id)){ d.push(id); store.set('downloaded',d); } }
+
+/* ---------- prefs ---------- */
+function applyPrefs(){
+  document.documentElement.style.setProperty('--fs', (1.25*prefs.fs/100)+'rem');
+  $('#fsVal').textContent = prefs.fs+'%';
+  if(prefs.theme==='system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', prefs.theme);
+  $$('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===prefs.theme));
+  store.set('prefs', prefs);
+}
+$('#fsDown').onclick=()=>{prefs.fs=Math.max(80,prefs.fs-10);applyPrefs();};
+$('#fsUp').onclick=()=>{prefs.fs=Math.min(170,prefs.fs+10);applyPrefs();};
+$$('#themeSeg button').forEach(b=>b.onclick=()=>{prefs.theme=b.dataset.t;applyPrefs();});
+$('#settingsBtn').onclick=e=>{e.stopPropagation();const on=$('#settings').classList.toggle('on');$('#settingsBtn').setAttribute('aria-expanded',on);};
+document.addEventListener('click',e=>{ if(!e.target.closest('#settings')&&!e.target.closest('#settingsBtn')) $('#settings').classList.remove('on'); });
+
+/* ---------- reader ---------- */
+let renderSeq = 0;
+function showStatus(html){ $('#text').innerHTML='<div class="status">'+html+'</div>'; $('#pager').style.display='none'; $('#copyright').textContent=''; }
+async function render(scrollToVerse){
+  const seq = ++renderSeq; const v = ver();
+  $('#refLabel').textContent = refStr(state.b,state.c);
+  $('#bookTitle').textContent = CANON[state.b][1];
+  $('#verBtn').textContent = v.abbreviation;
+  document.title = refStr(state.b,state.c)+' ('+v.abbreviation+') - Lamp';
+  store.set('pos', {ver:state.ver, b:state.b, c:state.c});
+  clearSel();
+  const slow = setTimeout(()=>{ if(seq===renderSeq) showStatus('<span class="spin"></span>Loading '+esc(v.name)); }, 120);
+  let data;
+  try{ data = await src(v).chapter(v, state.b, state.c); }
+  catch(err){
+    clearTimeout(slow); if(seq!==renderSeq) return;
+    showStatus(esc(err.message)+'<br><button class="btn" id="fallbackBtn">Read in '+esc(byId(manifest.default).abbreviation)+' instead</button>');
+    $('#fallbackBtn').onclick=()=>setVersion(manifest.default);
+    return;
+  }
+  clearTimeout(slow); if(seq!==renderSeq) return;
+  current = data;
+  let h = '<span class="drop" aria-hidden="true">'+(state.c+1)+'</span>'; let first = true;
+  data.verses.forEach((t,i)=>{
+    if(!t) return;
+    const k = key(state.b,state.c,i); const cls = ['v'];
+    if(first){ cls.push('first'); first=false; }
+    if(hl[k]) cls.push('h-'+hl[k]);
+    if(bm[k]) cls.push('bm');
+    h += '<span class="'+cls.join(' ')+'" data-v="'+i+'" id="v'+i+'" tabindex="0" role="button"><sup>'+(i+1)+'</sup>'+esc(t)+'</span> ';
+  });
+  if(first) h = '<div class="status">'+esc(v.name)+' has no text for this chapter.</div>';
+  $('#text').innerHTML = h;
+  $('#pager').style.display='';
+  $('#copyright').textContent = data.copyright || '';
+  const prev = prevCh(), next = nextCh();
+  $('#prevBtn').disabled = !prev; $('#prevBtn').textContent = prev ? 'Previous: '+refStr(prev[0],prev[1]) : 'Start of the Bible';
+  $('#nextBtn').disabled = !next; $('#nextBtn').textContent = next ? 'Next: '+refStr(next[0],next[1]) : 'End of the Bible';
+  if(scrollToVerse!=null){
+    requestAnimationFrame(()=>{ const el=$('#v'+scrollToVerse); if(el){ el.scrollIntoView({block:'center'}); el.classList.add('sel'); setTimeout(()=>el.classList.remove('sel'),1800); } });
+  } else window.scrollTo(0,0);
+}
+function prevCh(){ if(state.c>0) return [state.b,state.c-1]; if(state.b>0) return [state.b-1,CANON[state.b-1][2]-1]; return null; }
+function nextCh(){ if(state.c<CANON[state.b][2]-1) return [state.b,state.c+1]; if(state.b<CANON.length-1) return [state.b+1,0]; return null; }
+function go(b,c,v){ state.b=b; state.c=c; show('read'); render(v); }
+function setVersion(id){ state.ver=id; closePicker(); show('read'); render(); }
+$('#prevBtn').onclick=()=>{const p=prevCh(); if(p) go(p[0],p[1]);};
+$('#nextBtn').onclick=()=>{const n=nextCh(); if(n) go(n[0],n[1]);};
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closePicker(); clearSel(); return; }
+  if(!$('#v-read').classList.contains('on')||e.target.matches('input')||$('#picker').classList.contains('on')) return;
+  if(e.key==='ArrowRight') $('#nextBtn').click();
+  if(e.key==='ArrowLeft') $('#prevBtn').click();
+});
+
+/* ---------- verse selection ---------- */
+$('#text').addEventListener('click',e=>{ const v=e.target.closest('.v'); if(v) toggleSel(+v.dataset.v); });
+$('#text').addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches('.v')){ e.preventDefault(); toggleSel(+e.target.dataset.v); } });
+function toggleSel(i){ sel.has(i) ? sel.delete(i) : sel.add(i); $('#v'+i).classList.toggle('sel', sel.has(i)); updateActions(); }
+function clearSel(){ sel.forEach(i=>{const el=$('#v'+i); el&&el.classList.remove('sel');}); sel.clear(); updateActions(); }
+const selSorted = () => [...sel].sort((x,y)=>x-y);
+function selRef(){
+  const a=selSorted(); if(!a.length) return '';
+  const parts=[]; let s=a[0], p=a[0];
+  for(let i=1;i<=a.length;i++){ if(a[i]===p+1){p=a[i];continue;} parts.push(s===p? (s+1) : (s+1)+'-'+(p+1)); s=p=a[i]; }
+  return CANON[state.b][1]+' '+(state.c+1)+':'+parts.join(',');
+}
+function updateActions(){
+  const on = sel.size>0; $('#actions').classList.toggle('on', on); if(!on) return;
+  $('#actLabel').textContent = selRef();
+  const keys=selSorted().map(i=>key(state.b,state.c,i)); const colors=new Set(keys.map(k=>hl[k]));
+  $$('#actions .sw').forEach(s=>s.classList.toggle('active', colors.size===1 && colors.has(s.dataset.c)));
+  $('#actBm').textContent = keys.every(k=>bm[k]) ? 'Remove bookmark' : 'Bookmark';
+}
+$$('#actions .sw').forEach(s=>s.onclick=()=>{
+  const c=s.dataset.c; const keys=selSorted().map(i=>key(state.b,state.c,i)); const same=keys.every(k=>hl[k]===c);
+  keys.forEach(k=>{ if(same) delete hl[k]; else hl[k]=c; }); store.set('hl2',hl);
+  sel.forEach(i=>{ const el=$('#v'+i); el.classList.remove('h-gold','h-sage','h-sky'); if(!same) el.classList.add('h-'+c); });
+  toast(same ? 'Highlight removed' : 'Highlighted'); clearSel();
+});
+$('#actBm').onclick=()=>{
+  const keys=selSorted().map(i=>key(state.b,state.c,i)); const all=keys.every(k=>bm[k]);
+  keys.forEach(k=>{ if(all) delete bm[k]; else bm[k]=Date.now(); }); store.set('bm2',bm);
+  sel.forEach(i=>$('#v'+i).classList.toggle('bm',!all));
+  toast(all ? 'Bookmark removed' : 'Bookmarked'); clearSel();
+};
+function copyText(t){
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>toast('Copied'),()=>{
+    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
+    try{document.execCommand('copy');toast('Copied');}catch(e){toast('Select the text to copy it');} ta.remove();
+  });
+}
+$('#actCopy').onclick=()=>{ copyText('"'+selSorted().map(i=>current.verses[i]).join(' ')+'" ('+selRef()+' '+ver().abbreviation+')'); clearSel(); };
+$('#actClose').onclick=clearSel;
+$('#actCmp').onclick=()=>{ const verses=selSorted(), label=selRef(); clearSel(); openCompare(state.b,state.c,verses,label); };
+
+/* ---------- sheet: books, versions, compare ---------- */
+let pickTest='ot';
+function openSheet(){ $('#picker').classList.add('on'); $('#scrim').classList.add('on'); }
+function closePicker(){ $('#picker').classList.remove('on'); $('#scrim').classList.remove('on'); }
+function sheet(title, html, showTest){ $('#pickerTitle').textContent=title; $('#testSeg').style.display=showTest?'':'none'; $('#pickerBody').innerHTML=html; $('#pickerBody').scrollTop=0; }
+function renderBooks(){
+  $$('#testSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===pickTest));
+  const [s,e] = pickTest==='ot'?[0,NT_START]:[NT_START,CANON.length];
+  let h='<div class="books">'; for(let i=s;i<e;i++) h+='<button data-b="'+i+'" class="'+(i===state.b?'cur':'')+'">'+CANON[i][1]+'</button>';
+  sheet('Books', h+'</div>', true);
+}
+function renderChaps(b){
+  const n=CANON[b][2]; if(n===1){ closePicker(); go(b,0); return; }
+  let h='<button class="back" data-back="1" style="margin-bottom:1rem">All books</button><div class="chaps">';
+  for(let i=0;i<n;i++) h+='<button data-c="'+i+'" data-b="'+b+'" class="'+(b===state.b&&i===state.c?'cur':'')+'">'+(i+1)+'</button>';
+  sheet(CANON[b][1], h+'</div>', false);
+}
+function renderVersions(){
+  const dl = store.get('downloaded', []);
+  const row = v => {
+    let st;
+    if(v.id===state.ver) st='Reading';
+    else if(v.source.type==='file') st = dl.includes(v.id)||fileCache[v.id] ? 'Downloaded' : 'Download';
+    else st = src(v).ready(v) ? 'Online' : 'Needs key';
+    return '<li><button data-ver="'+v.id+'" aria-current="'+(v.id===state.ver)+'"><span class="ab">'+esc(v.abbreviation)+'</span><span><span class="nm">'+esc(v.name)+'</span><span class="lic">'+(v.year?v.year+'. ':'')+esc(v.license)+'</span></span><span class="st">'+st+'</span></button></li>';
+  };
+  const local = manifest.versions.filter(v=>v.source.type==='file'), remote = manifest.versions.filter(v=>v.source.type!=='file');
+  let h = '<p class="group-h">Stored on this device, works offline</p><ul class="vlist">'+local.map(row).join('')+'</ul>';
+  if(remote.length){
+    h += '<p class="group-h">Streamed from API.Bible</p><ul class="vlist">'+remote.map(row).join('')+'</ul>';
+    h += '<div class="keybox"><p>These translations are under copyright, so they load a chapter at a time through a licensed API instead of being stored in the app. Get a free key at <a href="https://api.bible" target="_blank" rel="noopener">api.bible</a> and paste it here. It stays on this device.</p>'+
+         '<div class="keyrow"><input id="keyIn" type="password" placeholder="API.Bible key" value="'+esc(apiKey)+'" autocomplete="off"><button class="btn" id="keySave">Save key</button></div></div>';
+  }
+  sheet('Translations', h, false);
+  const ks=$('#keySave'); if(ks) ks.onclick=()=>{ apiKey=$('#keyIn').value.trim(); store.set('apikey',apiKey); store.set('bibleIds',{}); sources.apibible.chapterCache={}; toast(apiKey?'Key saved':'Key removed'); renderVersions(); };
+}
+async function openCompare(b,c,verses,label){
+  sheet(label, '<ul class="cmp" id="cmpList">'+manifest.versions.map(v=>'<li data-cv="'+v.id+'"><div class="ab">'+esc(v.abbreviation)+' <span style="font-weight:400;color:var(--muted)">'+esc(v.name)+'</span></div><div class="t na"><span class="spin"></span>Loading</div></li>').join('')+'</ul>', false);
+  openSheet();
+  manifest.versions.forEach(async v=>{
+    const cell = () => document.querySelector('[data-cv="'+v.id+'"] .t');
+    if(!src(v).ready(v)){ const el=cell(); if(el) el.textContent='Add an API.Bible key to compare this translation.'; return; }
+    try{
+      const d = await src(v).chapter(v,b,c); const text = verses.map(i=>d.verses[i]).filter(Boolean).join(' ');
+      const el=cell(); if(!el) return;
+      if(text){ el.classList.remove('na'); el.textContent=text; } else el.textContent='This translation has no text for these verses.';
+    }catch(err){ const el=cell(); if(el) el.textContent=err.message; }
+  });
+}
+$('#refBtn').onclick=()=>{ pickTest = state.b>=NT_START?'nt':'ot'; renderBooks(); openSheet(); };
+$('#verBtn').onclick=()=>{ renderVersions(); openSheet(); };
+$('#scrim').onclick=closePicker;
+$('#sheetClose').onclick=closePicker;
+$$('#testSeg button').forEach(b=>b.onclick=()=>{pickTest=b.dataset.t;renderBooks();});
+$('#pickerBody').addEventListener('click',e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.back) return renderBooks();
+  if(t.dataset.ver){
+    const v=byId(t.dataset.ver);
+    if(!src(v).ready(v)){ toast('Add an API.Bible key first'); const k=$('#keyIn'); if(k) k.focus(); return; }
+    return setVersion(v.id);
+  }
+  if(t.dataset.c!=null){ closePicker(); go(+t.dataset.b,+t.dataset.c); return; }
+  if(t.dataset.b!=null) renderChaps(+t.dataset.b);
+});
+
+/* ---------- views ---------- */
+function show(v){
+  $$('.view').forEach(s=>s.classList.toggle('on', s.id==='v-'+v));
+  $$('.nav button').forEach(b=>{ if(b.dataset.v===v) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('#refBtn').style.visibility = v==='read'?'visible':'hidden';
+  $('#settingsBtn').style.visibility = v==='read'?'visible':'hidden';
+  if(v!=='read') clearSel();
+  if(v==='saved') renderSaved();
+  if(v==='today') renderToday();
+  if(v==='search'){ $('#searchIntro').textContent='Search every verse in the '+ver().name+'. Type a word, a phrase, or jump straight to a reference.'; setTimeout(()=>$('#q').focus(),50); }
+  if(v!=='read') window.scrollTo(0,0);
+}
+$$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+
+/* ---------- references ---------- */
+const aliases = {}; CANON.forEach(([u,n],i)=>{ aliases[n.toLowerCase().replace(/\s/g,'')]=i; aliases[u.toLowerCase()]=i; });
+Object.assign(aliases,{psalm:18,ps:18,song:21,songofsongs:21,rev:65,revelations:65,gen:0,ex:1,exod:1,matt:39,mt:39,mk:40,lk:41,jn:42,rom:44,phil:49,heb:57,jas:58,prov:19,isa:22,jer:23,eccl:20});
+function parseRef(q){
+  const m=q.trim().toLowerCase().match(/^([1-3]?\s*[a-z][a-z\s]*?)\s*(\d+)(?::(\d+))?$/); if(!m) return null;
+  const nm=m[1].replace(/\s/g,''); let b=aliases[nm];
+  if(b==null){ if(nm.length<3) return null; b=CANON.findIndex(([,n])=>n.toLowerCase().replace(/\s/g,'').startsWith(nm)); if(b<0) return null; }
+  const c=+m[2]-1; if(c<0||c>=CANON[b][2]) return null;
+  return [b,c,m[3]!=null?+m[3]-1:null];
+}
+
+/* ---------- search ---------- */
+let scope='all', sTimer, sSeq=0;
+$$('#scopeSeg button').forEach(b=>b.onclick=()=>{scope=b.dataset.s;$$('#scopeSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));runSearch();});
+$('#q').addEventListener('input',()=>{clearTimeout(sTimer);sTimer=setTimeout(runSearch, ver().source.type==='file'?180:500);});
+$('#q').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const r=parseRef($('#q').value); if(r) go(r[0],r[1],r[2]); } });
+['love','faith','peace','light','shepherd','mercy'].forEach(w=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=w; c.onclick=()=>{$('#q').value=w;runSearch();}; $('#chips').appendChild(c); });
+async function runSearch(){
+  const seq=++sSeq, q=$('#q').value.trim(), v=ver(), list=$('#results');
+  if(!q){ list.innerHTML=''; $('#searchMeta').textContent=''; $('#searchEmpty').style.display=''; return; }
+  $('#searchEmpty').style.display='none';
+  let h=''; const ref=parseRef(q);
+  if(ref) h+='<li><button data-r="'+ref.join('.')+'"><div class="r">Go to '+refStr(ref[0],ref[1],ref[2])+'</div></button></li>';
+  if(q.length<3){ list.innerHTML=h; $('#searchMeta').textContent=ref?'':'Type at least 3 letters.'; return; }
+  $('#searchMeta').innerHTML='<span class="spin"></span>Searching '+esc(v.abbreviation);
+  const range = scope==='ot'?[0,NT_START]:scope==='nt'?[NT_START,CANON.length]:[0,CANON.length];
+  let res;
+  try{ res = await src(v).search(v,q,range); }
+  catch(err){ if(seq!==sSeq) return; list.innerHTML=h; $('#searchMeta').textContent=err.message; return; }
+  if(seq!==sSeq) return;
+  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  res.hits.forEach(([b,c,i,t])=>{ h+='<li><button data-r="'+b+'.'+c+'.'+i+'"><div class="r">'+refStr(b,c,i)+'</div><div class="t">'+esc(t).replace(re,'<mark>$1</mark>')+'</div></button></li>'; });
+  list.innerHTML=h;
+  $('#searchMeta').textContent = res.total ? res.total.toLocaleString()+' verse'+(res.total===1?'':'s')+' in '+v.abbreviation+(res.total>res.hits.length?', showing the first '+res.hits.length:'') : 'No verses in '+v.abbreviation+' contain "'+q+'". Try a shorter word or another translation.';
+}
+function resultClick(e){ const t=e.target.closest('button[data-r]'); if(!t) return; const [b,c,v]=t.dataset.r.split('.').map(x=>x===''||x==='null'?NaN:+x); go(b,c,isNaN(v)?null:v); }
+$('#results').addEventListener('click',resultClick);
+$('#savedList').addEventListener('click',resultClick);
+
+/* ---------- saved ---------- */
+let savedTab='hl';
+$$('.tabs button').forEach(b=>b.onclick=()=>{savedTab=b.dataset.tab;$$('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderSaved();});
+async function renderSaved(){
+  const srcMap = savedTab==='hl'?hl:bm;
+  const ks = Object.keys(srcMap).map(k=>[k,...unkey(k)]).filter(x=>x[1]>=0).sort((a,b)=>a[1]-b[1]||a[2]-b[2]||a[3]-b[3]);
+  if(!ks.length){ $('#savedList').innerHTML='<li style="border:0"><p class="empty" style="margin-top:1rem">'+(savedTab==='hl'?'Tap any verse while reading, then pick a color to highlight it.':'Tap any verse while reading and choose Bookmark to keep it here.')+'</p></li>'; return; }
+  const sw={gold:'#D6B24A',sage:'#8DB38D',sky:'#86A8DC'}; const v=ver();
+  $('#savedList').innerHTML = ks.map(([k,b,c,i])=>'<li><button data-r="'+b+'.'+c+'.'+i+'"><div class="r">'+(savedTab==='hl'?'<span class="swatch" style="background:'+sw[hl[k]]+'"></span>':'')+refStr(b,c,i)+'</div><div class="t" data-k="'+k+'"></div></button></li>').join('');
+  for(const [k,b,c,i] of ks){
+    try{ const d=await src(v).chapter(v,b,c); const el=document.querySelector('[data-k="'+k+'"]'); if(el) el.textContent=d.verses[i]||''; }catch(e){ break; }
+  }
+}
+
+/* ---------- today ---------- */
+const VOTD=['PSA.23.1','JHN.3.16','PRO.3.5','ISA.40.31','PHP.4.13','ROM.8.28','JER.29.11','JOS.1.9','MAT.11.28','PSA.46.1','LAM.3.22','2CO.5.17','GAL.5.22','HEB.11.1','MIC.6.8','PSA.119.105','MAT.5.9','1JN.4.18','ISA.41.10','ROM.12.2','JAS.1.5','PSA.27.1','JHN.14.27','ECC.3.1','COL.3.23','1CO.13.4','PSA.37.4','MAT.6.34','ROM.15.13','PSA.34.18','JHN.1.5'];
+const dayIndex = () => { const d=new Date(); return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); };
+const GOSPELS=[]; for(let b=39;b<=42;b++) for(let c=0;c<CANON[b][2];c++) GOSPELS.push([b,c]);
+async function renderToday(){
+  $('#todayDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  const [b,c,i]=unkey(VOTD[dayIndex()%VOTD.length]);
+  let v=ver(), text='';
+  try{ text=(await src(v).chapter(v,b,c)).verses[i]; }
+  catch(e){ v=byId(manifest.default); text=(await src(v).chapter(v,b,c)).verses[i]; }
+  $('#votdText').textContent = text;
+  $('#votdRef').textContent = refStr(b,c,i)+', '+v.name;
+  $('#votdOpen').onclick=()=>go(b,c,i);
+  $('#votdCopy').onclick=()=>copyText('"'+text+'" ('+refStr(b,c,i)+' '+v.abbreviation+')');
+  const total=GOSPELS.length, done=Math.min(plan.done,total);
+  $('#planBar').style.width=(done/total*100)+'%';
+  $('#planMeta').textContent = done+' of '+total+' chapters read';
+  if(done>=total){ $('#planRef').textContent='Plan complete'; $('#planDay').textContent='You read all four Gospels.'; $('#planRead').style.display='none'; $('#planDone').textContent='Start over'; $('#planDone').onclick=()=>{plan.done=0;store.set('plan',plan);renderToday();}; return; }
+  const [pb,pc]=GOSPELS[done];
+  $('#planRef').textContent=refStr(pb,pc); $('#planDay').textContent='Day '+(done+1);
+  $('#planRead').style.display=''; $('#planRead').onclick=()=>go(pb,pc);
+  $('#planDone').textContent='Mark done';
+  $('#planDone').onclick=()=>{ plan.done=done+1; store.set('plan',plan); toast('Day '+(done+1)+' done'); renderToday(); };
+}
+
+/* ---------- boot ---------- */
+applyPrefs();
+(async function boot(){
+  showStatus('<span class="spin"></span>Loading translations');
+  try{
+    const r = await fetch(MANIFEST_URL); if(!r.ok) throw new Error(r.status);
+    manifest = await r.json();
+  }catch(e){ showStatus('The list of translations could not be loaded from '+esc(MANIFEST_URL)+'. Check that the file is deployed next to the app.'); return; }
+  if(!byId(state.ver) || !src(byId(state.ver)).ready(byId(state.ver))) state.ver = manifest.default;
+  if(!CANON[state.b] || state.c>=CANON[state.b][2]) { state.b=0; state.c=0; }
+  render();
+})();
+})();
+
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));}</script>
+</body>
+</html>

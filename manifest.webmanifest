@@ -1,0 +1,12 @@
+{
+  "name": "Lamp Bible",
+  "short_name": "Lamp",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF0EC",
+  "theme_color": "#1C2340",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

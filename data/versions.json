@@ -1,0 +1,84 @@
+{
+  "default": "bsb",
+  "versions": [
+    {
+      "id": "bsb",
+      "abbreviation": "BSB",
+      "name": "Berean Standard Bible",
+      "year": 2022,
+      "license": "Public domain",
+      "source": {
+        "type": "file",
+        "url": "data/bsb.json"
+      }
+    },
+    {
+      "id": "web",
+      "abbreviation": "WEB",
+      "name": "World English Bible",
+      "year": 2020,
+      "license": "Public domain",
+      "source": {
+        "type": "file",
+        "url": "data/web.json"
+      }
+    },
+    {
+      "id": "kjv",
+      "abbreviation": "KJV",
+      "name": "King James Version",
+      "year": 1769,
+      "license": "Public domain",
+      "source": {
+        "type": "file",
+        "url": "data/kjv.json"
+      }
+    },
+    {
+      "id": "asv",
+      "abbreviation": "ASV",
+      "name": "American Standard Version",
+      "year": 1901,
+      "license": "Public domain",
+      "source": {
+        "type": "file",
+        "url": "data/asv.json"
+      }
+    },
+    {
+      "id": "bbe",
+      "abbreviation": "BBE",
+      "name": "Bible in Basic English",
+      "year": 1965,
+      "license": "Public domain",
+      "source": {
+        "type": "file",
+        "url": "data/bbe.json"
+      }
+    },
+    {
+      "id": "gnt",
+      "abbreviation": "GNT",
+      "name": "Good News Translation",
+      "year": 1992,
+      "license": "Copyright American Bible Society. Streamed through API.Bible.",
+      "source": {
+        "type": "apibible",
+        "bibleId": null,
+        "abbreviation": "GNT"
+      }
+    },
+    {
+      "id": "ncv",
+      "abbreviation": "NCV",
+      "name": "New Century Version",
+      "year": 2005,
+      "license": "Copyright Thomas Nelson. Requires a license from HarperCollins Christian Publishing.",
+      "source": {
+        "type": "apibible",
+        "bibleId": null,
+        "abbreviation": "NCV"
+      }
+    }
+  ]
+}
